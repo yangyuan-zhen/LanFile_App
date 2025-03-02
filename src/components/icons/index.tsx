@@ -190,3 +190,33 @@ export const ShareIcon = ({color, size}: IconProps) => (
     />
   </Svg>
 );
+
+export const PlayIcon = ({color, size}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M8 5v14l11-7z" fill={color} />
+  </Svg>
+);
+
+export const PauseIcon = ({color, size}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill={color} />
+  </Svg>
+);
+
+export const CloseIcon = ({color, size}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+      fill={color}
+    />
+  </Svg>
+);
+
+export const FolderIcon = ({color, size}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      fill={color}
+    />
+  </Svg>
+);

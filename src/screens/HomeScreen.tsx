@@ -172,11 +172,8 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
 
       {viewMode === 'radar' ? (
         <View style={styles.radarView}>
-          <RadarView
-            devices={mockDevices}
-            onDevicePress={device => handleSendFile(device.name)}
-          />
-          <Text style={styles.radarWifiInfo}>已连接到 Wi-Fi: HomeWiFi</Text>
+          <RadarView devices={mockDevices} onDevicePress={handleDevicePress} />
+          <Text style={styles.radarWifiInfo}>已连接到Wi-Fi: HomeWiFi</Text>
         </View>
       ) : (
         <View style={styles.listView}>
@@ -189,7 +186,7 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
               />
             ))}
           </View>
-          <Text style={styles.listWifiInfo}>已连接到 Wi-Fi: HomeWiFi</Text>
+          <Text style={styles.listWifiInfo}>已连接到Wi-Fi: HomeWiFi</Text>
         </View>
       )}
 
@@ -197,7 +194,7 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
         device={selectedDevice}
         visible={!!selectedDevice}
         onClose={() => setSelectedDevice(null)}
-        onSendFile={device => handleSendFile(device.name)}
+        onSendFile={(device: Device) => handleSendFile(device.id)}
       />
     </View>
   );

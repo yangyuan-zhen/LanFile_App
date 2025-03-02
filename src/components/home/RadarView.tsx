@@ -1,13 +1,13 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
-import Svg, {Circle, G, Text as SvgText} from 'react-native-svg';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import Svg, {Circle, G} from 'react-native-svg';
 import {colors} from '../../styles/theme';
 import {Device} from '../../types/device';
 import {PersonIcon, PhoneIcon, LaptopIcon, TvIcon, ServerIcon} from '../icons';
 
 interface RadarViewProps {
   devices: Device[];
-  onDevicePress?: (device: Device) => void;
+  onDevicePress: (device: Device) => void;
 }
 
 const DeviceTypeIcon = ({
@@ -81,35 +81,26 @@ export const RadarView = ({devices, onDevicePress}: RadarViewProps) => {
         {/* 设备图标 */}
         {devices.map(device => {
           const angle = (device.angle * Math.PI) / 180;
-          const distance = device.distance * (size / 2 - 40);
-          const x = centerX + Math.cos(angle) * distance;
-          const y = centerY + Math.sin(angle) * distance;
 
           return (
-            <G
+            <TouchableOpacity
               key={device.id}
-              x={x}
-              y={y}
-              onPress={() => onDevicePress?.(device)}
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{cursor: 'pointer'}}>
-              <Circle r={15} fill={colors.surface} />
-              <G x={-10} y={-10}>
-                <DeviceTypeIcon
-                  type={device.type}
-                  color={colors.text}
-                  size={20}
-                />
-              </G>
-              <SvgText
-                x={0}
-                y={25}
-                textAnchor="middle"
-                fill={colors.text}
-                fontSize={12}>
-                {device.name}
-              </SvgText>
-            </G>
+              style={[
+                styles.deviceDot,
+                {
+                  left: `${50 + 40 * Math.cos((angle * Math.PI) / 180)}%`,
+                  top: `${50 + 40 * Math.sin((angle * Math.PI) / 180)}%`,
+                },
+              ]}
+              onPress={() => onDevicePress(device)}>
+              <DeviceTypeIcon
+                type={device.type}
+                color={
+                  device.status === 'online' ? colors.primary : colors.disabled
+                }
+                size={24}
+              />
+            </TouchableOpacity>
           );
         })}
       </Svg>
@@ -122,5 +113,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  deviceDot: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
