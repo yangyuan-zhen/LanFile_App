@@ -10,7 +10,8 @@ import {colors} from '../styles/theme';
 import {QrCodeIcon, ShareIcon, ArrowLeftIcon} from '../components/icons';
 
 export const ReceiveScreen = () => {
-  const [savePath, setSavePath] = useState('/Download/Transfer');
+  const [savePath, _setSavePath] = useState('/Download/Transfer');
+  const [magnetLink, _setMagnetLink] = useState('');
 
   return (
     <View style={styles.container}>
@@ -24,7 +25,7 @@ export const ReceiveScreen = () => {
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          value="点击磁力链接"
+          value={magnetLink}
           editable={false}
           placeholder="点击磁力链接"
         />
@@ -37,6 +38,11 @@ export const ReceiveScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      <TouchableOpacity
+        style={[styles.startButton, !magnetLink && styles.startButtonDisabled]}
+        disabled={!magnetLink}>
+        <Text style={styles.startButtonText}>开始接收</Text>
+      </TouchableOpacity>
 
       <View style={styles.savePathContainer}>
         <View style={styles.savePathHeader}>
@@ -47,10 +53,6 @@ export const ReceiveScreen = () => {
         </View>
         <Text style={styles.pathText}>{savePath}</Text>
       </View>
-
-      <TouchableOpacity style={styles.startButton}>
-        <Text style={styles.startButtonText}>开始接收</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -99,10 +101,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   savePathContainer: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: colors.surface,
+    marginHorizontal: 16,
   },
   savePathHeader: {
     flexDirection: 'row',
@@ -116,7 +122,7 @@ const styles = StyleSheet.create({
   },
   changeButton: {
     fontSize: 14,
-    color: colors.primary,
+    color: colors.text,
   },
   pathText: {
     fontSize: 16,
@@ -124,10 +130,13 @@ const styles = StyleSheet.create({
   },
   startButton: {
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 4,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  startButtonDisabled: {
+    backgroundColor: colors.primaryLight,
   },
   startButtonText: {
     color: colors.background,
