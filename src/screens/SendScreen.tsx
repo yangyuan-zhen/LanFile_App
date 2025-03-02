@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '../styles/theme';
-import type {Device} from '../types/device';
+// import type {Device} from '../types/device';
 import {
   ArrowLeftIcon,
   ChevronRightIcon,

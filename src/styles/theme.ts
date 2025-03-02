@@ -2,15 +2,16 @@ import { StyleSheet } from 'react-native';
 
 // 全局颜色定义
 export const colors = {
-    primary: '#007AFF', // 科技蓝主色
+    primary: '#2196F3',
     secondary: '#5856D6', // 深紫蓝辅助色
     background: '#FFFFFF', // 白色背景
-    surface: '#F2F2F7', // 浅灰表面色
+    surface: '#F5F5F5',
     accent: '#30B0C7', // 青蓝强调色
     text: '#000000', // 主文本色
-    disabled: '#C7C7CC', // 禁用状态色
+    disabled: '#BDBDBD',
     placeholder: '#8E8E93', // 占位文本色
     backdrop: 'rgba(0, 0, 0, 0.5)', // 遮罩层
+    primaryLight: '#92B1F5', // RGB(146,177,245) 淡蓝色
 };
 
 // 暗色主题色板
