@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
@@ -14,6 +15,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  LogBox,
 } from 'react-native';
 import {colors} from './src/styles/theme';
 import {
@@ -27,6 +29,7 @@ import {HomeScreen} from './src/screens/HomeScreen';
 import {SendScreen} from './src/screens/SendScreen';
 import {ReceiveScreen} from './src/screens/ReceiveScreen';
 import {SettingsScreen} from './src/screens/SettingsScreen';
+import {StatusScreen} from './src/screens/StatusScreen';
 
 type TabKey = 'home' | 'send' | 'receive' | 'status' | 'settings';
 
@@ -58,19 +61,13 @@ const routes: {key: TabKey; title: string; icon: any}[] = [
   },
 ];
 
-const renderScene = {
-  home: () => <HomeScreen onSendFile={() => {}} />,
-  send: () => <SendScreen deviceName="" onChangeDevice={() => {}} />,
-  receive: () => <ReceiveScreen />,
-  status: () => <View />,
-  settings: () => <SettingsScreen />,
-};
-
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+  const [deviceName, setDeviceName] = useState('');
 
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const handleSendFile = (deviceName: string) => {
     setSelectedDevice(deviceName);
     setActiveTab('send');
@@ -79,6 +76,30 @@ function App(): React.JSX.Element {
   const handleChangeDevice = () => {
     setActiveTab('home');
   };
+
+  const renderScene = {
+    home: () => <HomeScreen onSendFile={handleSendFile} />,
+    send: () => (
+      <SendScreen
+        deviceName={selectedDevice}
+        onChangeDevice={handleChangeDevice}
+      />
+    ),
+    receive: () => <ReceiveScreen />,
+    status: () => <StatusScreen />,
+    settings: () => (
+      <SettingsScreen
+        deviceName={deviceName}
+        onDeviceNameChange={setDeviceName}
+        savePath=""
+        onSavePathChange={() => {}}
+      />
+    ),
+  };
+
+  if (__DEV__) {
+    LogBox.ignoreLogs(['Require cycle:']);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
