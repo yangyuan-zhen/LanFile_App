@@ -25,13 +25,10 @@ import {
 } from './src/components/icons';
 import {HomeScreen} from './src/screens/HomeScreen';
 import {SendScreen} from './src/screens/SendScreen';
+import {ReceiveScreen} from './src/screens/ReceiveScreen';
+import {SettingsScreen} from './src/screens/SettingsScreen';
 
-// 先创建空的页面组件
-const HomeRoute = () => <HomeScreen />;
-const SendRoute = () => <SendScreen />;
-const ReceiveRoute = () => <></>;
-const StatusRoute = () => <></>;
-const SettingsRoute = () => <></>;
+type TabKey = 'home' | 'send' | 'receive' | 'status' | 'settings';
 
 const routes: {key: TabKey; title: string; icon: any}[] = [
   {
@@ -62,29 +59,48 @@ const routes: {key: TabKey; title: string; icon: any}[] = [
 ];
 
 const renderScene = {
-  home: HomeRoute,
-  send: SendRoute,
-  receive: ReceiveRoute,
-  status: StatusRoute,
-  settings: SettingsRoute,
+  home: () => <HomeScreen onSendFile={() => {}} />,
+  send: () => <SendScreen deviceName="" onChangeDevice={() => {}} />,
+  receive: () => <ReceiveScreen />,
+  status: () => <View />,
+  settings: () => <SettingsScreen />,
 };
-
-type TabKey = 'home' | 'send' | 'receive' | 'status' | 'settings';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [activeTab, setActiveTab] = useState<TabKey>('home');
+  const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+
+  const handleSendFile = (deviceName: string) => {
+    setSelectedDevice(deviceName);
+    setActiveTab('send');
+  };
+
+  const handleChangeDevice = () => {
+    setActiveTab('home');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <View style={styles.content}>{renderScene[activeTab as TabKey]()}</View>
+      <View style={styles.content}>
+        {activeTab === 'home' ? (
+          <HomeScreen onSendFile={handleSendFile} />
+        ) : activeTab === 'send' ? (
+          <SendScreen
+            deviceName={selectedDevice}
+            onChangeDevice={handleChangeDevice}
+          />
+        ) : (
+          renderScene[activeTab]()
+        )}
+      </View>
       <View style={styles.tabBar}>
         {routes.map(route => (
           <TouchableOpacity
             key={route.key}
             style={styles.tab}
-            onPress={() => setActiveTab(route.key as TabKey)}>
+            onPress={() => setActiveTab(route.key)}>
             <route.icon
               color={activeTab === route.key ? colors.primary : colors.disabled}
               size={24}

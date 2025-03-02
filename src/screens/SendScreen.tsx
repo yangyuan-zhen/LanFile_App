@@ -1,7 +1,15 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '../styles/theme';
-import {ArrowLeftIcon} from '../components/icons';
+import type {Device} from '../types/device';
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  ImageFileIcon,
+  DocumentFileIcon,
+  AudioFileIcon,
+  VideoFileIcon,
+} from '../components/icons';
 
 interface FileItem {
   id: string;
@@ -37,57 +45,137 @@ const mockFiles: FileItem[] = [
   },
 ];
 
-export const SendScreen = () => {
+const FileTypeIcon = ({type, size}: {type: FileItem['type']; size: number}) => {
+  switch (type) {
+    case 'image':
+      return <ImageFileIcon size={size} color={colors.text} />;
+    case 'document':
+      return <DocumentFileIcon size={size} color={colors.text} />;
+    case 'audio':
+      return <AudioFileIcon size={size} color={colors.text} />;
+    case 'video':
+      return <VideoFileIcon size={size} color={colors.text} />;
+    default:
+      return null;
+  }
+};
+
+interface SendScreenProps {
+  deviceName: string | null;
+  onChangeDevice: () => void;
+}
+
+export const SendScreen = ({deviceName, onChangeDevice}: SendScreenProps) => {
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'image' | 'video' | 'document'
   >('all');
 
+  const filteredFiles = mockFiles.filter(file => {
+    switch (selectedTab) {
+      case 'image':
+        return file.type === 'image';
+      case 'video':
+        return file.type === 'video';
+      case 'document':
+        return file.type === 'document';
+      default:
+        return true; // 'all' 标签显示所有文件
+    }
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => console.log('Back')}>
           <ArrowLeftIcon size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.topTitle}>选择文件</Text>
       </View>
 
-      <View style={styles.header}>
+      <View style={styles.headerCard}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>发送至</Text>
-          <TouchableOpacity style={styles.changeButton}>
-            <Text style={styles.changeButtonText}>更改 ›</Text>
+          <TouchableOpacity
+            style={styles.changeButton}
+            onPress={onChangeDevice}>
+            <View style={styles.changeButtonContent}>
+              <Text style={styles.changeButtonText}>更改</Text>
+              <ChevronRightIcon size={16} color={colors.text} />
+            </View>
           </TouchableOpacity>
         </View>
-        <Text style={styles.deviceName}>Phone-A</Text>
+        <Text style={styles.deviceName}>
+          {deviceName ? deviceName : '未选择设备'}
+        </Text>
       </View>
 
       <View style={styles.tabs}>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === 'all' && styles.activeTab]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'all' && styles.activeTabButton,
+          ]}
           onPress={() => setSelectedTab('all')}>
-          <Text style={styles.tabText}>全部</Text>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'all' && styles.activeTabText,
+            ]}>
+            全部
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === 'image' && styles.activeTab]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'image' && styles.activeTabButton,
+          ]}
           onPress={() => setSelectedTab('image')}>
-          <Text style={styles.tabText}>照片</Text>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'image' && styles.activeTabText,
+            ]}>
+            照片
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === 'video' && styles.activeTab]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'video' && styles.activeTabButton,
+          ]}
           onPress={() => setSelectedTab('video')}>
-          <Text style={styles.tabText}>视频</Text>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'video' && styles.activeTabText,
+            ]}>
+            视频
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === 'document' && styles.activeTab]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'document' && styles.activeTabButton,
+          ]}
           onPress={() => setSelectedTab('document')}>
-          <Text style={styles.tabText}>文档</Text>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'document' && styles.activeTabText,
+            ]}>
+            文档
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.fileList}>
-        {mockFiles.map(file => (
+        {filteredFiles.map(file => (
           <TouchableOpacity key={file.id} style={styles.fileItem}>
-            <View style={styles.fileIcon} />
+            <View style={styles.fileIcon}>
+              <FileTypeIcon type={file.type} size={24} />
+            </View>
             <View style={styles.fileInfo}>
               <Text style={styles.fileName}>{file.name}</Text>
               <Text style={styles.fileSize}>{file.size}</Text>
@@ -105,8 +193,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     marginTop: 10,
   },
-  header: {
+  headerCard: {
     padding: 16,
+    backgroundColor: colors.surface,
+    marginHorizontal: 16,
+    borderRadius: 12,
   },
   titleRow: {
     flexDirection: 'row',
@@ -119,10 +210,19 @@ const styles = StyleSheet.create({
   },
   changeButton: {
     padding: 8,
+    backgroundColor: colors.background,
+    borderRadius: 6,
+  },
+  changeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   changeButtonText: {
-    color: colors.primary,
+    color: colors.text,
     fontSize: 14,
+    marginRight: 4,
   },
   deviceName: {
     fontSize: 24,
@@ -132,33 +232,37 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surface,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    padding: 2,
+    margin: 16,
   },
-  tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginRight: 16,
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
   },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
+  activeTabButton: {
+    backgroundColor: colors.background,
   },
   tabText: {
-    color: colors.text,
+    color: colors.disabled,
     fontSize: 14,
+  },
+  activeTabText: {
+    color: colors.text,
   },
   fileList: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
   },
   fileItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 16,
     backgroundColor: colors.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 8,
   },
   fileIcon: {
@@ -167,6 +271,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: colors.background,
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fileInfo: {
     flex: 1,
@@ -186,10 +292,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   backButton: {
-    marginRight: 16,
+    marginRight: 8,
+    marginTop: 8,
   },
   topTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
   },
