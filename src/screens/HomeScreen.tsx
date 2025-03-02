@@ -110,7 +110,11 @@ const DeviceListItem = ({
   </Pressable>
 );
 
-export const HomeScreen = () => {
+interface HomeScreenProps {
+  onSendFile: (deviceName: string) => void;
+}
+
+export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
   const [viewMode, setViewMode] = useState<'radar' | 'list'>('radar');
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
@@ -118,8 +122,8 @@ export const HomeScreen = () => {
     setSelectedDevice(device);
   };
 
-  const handleSendFile = (device: Device) => {
-    console.log('Send file to:', device);
+  const handleSendFile = (deviceName: string) => {
+    onSendFile(deviceName);
     setSelectedDevice(null);
   };
 
@@ -168,7 +172,10 @@ export const HomeScreen = () => {
 
       {viewMode === 'radar' ? (
         <View style={styles.radarView}>
-          <RadarView devices={mockDevices} onDevicePress={handleDevicePress} />
+          <RadarView
+            devices={mockDevices}
+            onDevicePress={device => handleSendFile(device.name)}
+          />
           <Text style={styles.radarWifiInfo}>已连接到 Wi-Fi: HomeWiFi</Text>
         </View>
       ) : (
@@ -190,7 +197,7 @@ export const HomeScreen = () => {
         device={selectedDevice}
         visible={!!selectedDevice}
         onClose={() => setSelectedDevice(null)}
-        onSendFile={handleSendFile}
+        onSendFile={device => handleSendFile(device.name)}
       />
     </View>
   );
@@ -212,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
   },
