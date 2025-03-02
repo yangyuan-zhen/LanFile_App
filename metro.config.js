@@ -13,6 +13,8 @@ const config = {
     server: {
         port: 8081,
         host: 'localhost',
+        retryConnections: 5,
+        reconnectIntervalMs: 500,
         hmr: true,
         enhanceMiddleware: (middleware) => {
             return (req, res, next) => {

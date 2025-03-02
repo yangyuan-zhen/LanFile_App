@@ -194,7 +194,7 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
         device={selectedDevice}
         visible={!!selectedDevice}
         onClose={() => setSelectedDevice(null)}
-        onSendFile={(device: Device) => handleSendFile(device.id)}
+        onSendFile={(device: Device) => handleSendFile(device.name)}
       />
     </View>
   );
@@ -300,6 +300,8 @@ const styles = StyleSheet.create({
   },
   radarView: {
     flex: 1,
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   radarWifiInfo: {
     textAlign: 'center',

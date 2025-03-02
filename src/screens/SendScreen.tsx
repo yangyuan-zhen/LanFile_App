@@ -62,10 +62,10 @@ const FileTypeIcon = ({type, size}: {type: FileItem['type']; size: number}) => {
 
 interface SendScreenProps {
   deviceName: string | null;
-  onChangeDevice: () => void;
+  onBack: () => void;
 }
 
-export const SendScreen = ({deviceName, onChangeDevice}: SendScreenProps) => {
+export const SendScreen = ({deviceName, onBack}: SendScreenProps) => {
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'image' | 'video' | 'document'
   >('all');
@@ -86,9 +86,7 @@ export const SendScreen = ({deviceName, onChangeDevice}: SendScreenProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => console.log('Back')}>
+        <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <ArrowLeftIcon size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.topTitle}>选择文件</Text>
@@ -99,7 +97,7 @@ export const SendScreen = ({deviceName, onChangeDevice}: SendScreenProps) => {
           <Text style={styles.title}>发送至</Text>
           <TouchableOpacity
             style={styles.changeButton}
-            onPress={onChangeDevice}>
+            onPress={() => console.log('更改')}>
             <View style={styles.changeButtonContent}>
               <Text style={styles.changeButtonText}>更改</Text>
               <ChevronRightIcon size={16} color={colors.text} />
@@ -293,7 +291,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 8,
-    marginTop: 8,
+    marginTop: 6,
   },
   topTitle: {
     fontSize: 24,

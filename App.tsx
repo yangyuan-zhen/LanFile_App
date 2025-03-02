@@ -73,16 +73,12 @@ function App(): React.JSX.Element {
     setActiveTab('send');
   };
 
-  const handleChangeDevice = () => {
-    setActiveTab('home');
-  };
-
   const renderScene = {
     home: () => <HomeScreen onSendFile={handleSendFile} />,
     send: () => (
       <SendScreen
         deviceName={selectedDevice}
-        onChangeDevice={handleChangeDevice}
+        onBack={() => setActiveTab('home')}
       />
     ),
     receive: () => <ReceiveScreen />,
@@ -110,7 +106,7 @@ function App(): React.JSX.Element {
         ) : activeTab === 'send' ? (
           <SendScreen
             deviceName={selectedDevice}
-            onChangeDevice={handleChangeDevice}
+            onBack={() => setActiveTab('home')}
           />
         ) : (
           renderScene[activeTab]()
