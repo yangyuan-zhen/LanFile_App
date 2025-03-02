@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -117,6 +117,12 @@ interface HomeScreenProps {
 export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
   const [viewMode, setViewMode] = useState<'radar' | 'list'>('radar');
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [wifiName, setWifiName] = useState('');
+
+  useEffect(() => {
+    // 使用硬编码的 WiFi 名称
+    setWifiName('HomeWiFi');
+  }, []);
 
   const handleDevicePress = (device: Device) => {
     setSelectedDevice(device);
@@ -173,7 +179,7 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
       {viewMode === 'radar' ? (
         <View style={styles.radarView}>
           <RadarView devices={mockDevices} onDevicePress={handleDevicePress} />
-          <Text style={styles.radarWifiInfo}>已连接到Wi-Fi: HomeWiFi</Text>
+          <Text style={styles.radarWifiInfo}>已连接到Wi-Fi: {wifiName}</Text>
         </View>
       ) : (
         <View style={styles.listView}>
@@ -186,7 +192,7 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
               />
             ))}
           </View>
-          <Text style={styles.listWifiInfo}>已连接到Wi-Fi: HomeWiFi</Text>
+          <Text style={styles.listWifiInfo}>已连接到Wi-Fi: {wifiName}</Text>
         </View>
       )}
 
@@ -307,6 +313,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.text,
     padding: 16,
+    marginBottom: 200,
   },
   listWifiInfo: {
     textAlign: 'center',
