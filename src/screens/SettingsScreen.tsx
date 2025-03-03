@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  Modal,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import {colors} from '../styles/theme';
 import {ArrowLeftIcon, ChevronRightIcon} from '../components/icons';
 import {PathPickerScreen} from './PathPickerScreen';
@@ -26,8 +28,9 @@ export const SettingsScreen = ({
   onSavePathChange,
 }: SettingsScreenProps) => {
   const [showPathPicker, setShowPathPicker] = useState(false);
-  const [chunkSize, _setChunkSize] = useState(16);
-  const [maxConcurrent, _setMaxConcurrent] = useState(5);
+  const [showAbout, setShowAbout] = useState(false);
+  const [chunkSize, setChunkSize] = useState(16);
+  const [maxConcurrent, setMaxConcurrent] = useState(5);
   const [defaultDeviceName, setDefaultDeviceName] = useState('Unknown Device');
   useEffect(() => {
     const fetchDeviceName = async () => {
@@ -86,6 +89,17 @@ export const SettingsScreen = ({
         <View style={styles.settingItem}>
           <Text style={styles.settingLabel}>分片大小</Text>
           <View style={styles.sliderContainer}>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={32}
+              step={1}
+              value={chunkSize}
+              onValueChange={setChunkSize}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.surface}
+              thumbTintColor={colors.primary}
+            />
             <Text style={styles.sliderValue}>{Math.round(chunkSize)} MB</Text>
           </View>
         </View>
@@ -93,12 +107,25 @@ export const SettingsScreen = ({
         <View style={styles.settingItem}>
           <Text style={styles.settingLabel}>最大并发数</Text>
           <View style={styles.sliderContainer}>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={10}
+              step={1}
+              value={maxConcurrent}
+              onValueChange={setMaxConcurrent}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.surface}
+              thumbTintColor={colors.primary}
+            />
             <Text style={styles.sliderValue}>{Math.round(maxConcurrent)}</Text>
           </View>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.aboutItem}>
+      <TouchableOpacity
+        style={styles.aboutItem}
+        onPress={() => setShowAbout(true)}>
         <Text style={styles.settingLabel}>关于</Text>
         <ChevronRightIcon size={20} color={colors.text} />
       </TouchableOpacity>
@@ -117,6 +144,31 @@ export const SettingsScreen = ({
           onClose={() => setShowPathPicker(false)}
         />
       )}
+
+      <Modal
+        visible={showAbout}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAbout(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.aboutModalContent}>
+            <View style={styles.aboutModalHeader}>
+              <Text style={styles.aboutModalTitle}>关于 LanFile</Text>
+              <TouchableOpacity onPress={() => setShowAbout(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.aboutVersion}>版本: 0.0.1</Text>
+            <Text style={styles.aboutText}>
+              LanFile 是一个基于 Web 的文件传输工具，允许用户在局域网内快速
+              发现设备并传输文件，无需互联网连接。
+            </Text>
+            <Text style={styles.aboutCopyright}>
+              © 2025 LanFile Team (元之贞). 保留所有权利。
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -125,7 +177,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    marginTop: 10,
   },
   topBar: {
     flexDirection: 'row',
@@ -145,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 20,
     color: colors.text,
     paddingHorizontal: 16,
     marginBottom: 8,
@@ -182,7 +233,11 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 16,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+    marginRight: 10,
   },
   sliderValue: {
     fontSize: 16,
@@ -215,5 +270,50 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutModalContent: {
+    width: '85%',
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+  },
+  aboutModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  aboutModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  closeButton: {
+    fontSize: 20,
+    color: colors.text,
+    padding: 5,
+  },
+  aboutVersion: {
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 16,
+  },
+  aboutText: {
+    fontSize: 16,
+    color: colors.text,
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  aboutCopyright: {
+    fontSize: 14,
+    color: colors.disabled,
+    marginTop: 8,
   },
 });

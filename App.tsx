@@ -10,7 +10,6 @@ import React, {useState} from 'react';
 import {
   SafeAreaView,
   StatusBar,
-  useColorScheme,
   View,
   TouchableOpacity,
   Text,
@@ -62,7 +61,6 @@ const routes: {key: TabKey; title: string; icon: any}[] = [
 ];
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
   const [deviceName, setDeviceName] = useState('');
@@ -99,7 +97,7 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
       <View style={styles.content}>
         {activeTab === 'home' ? (
           <HomeScreen onSendFile={handleSendFile} />
