@@ -17,45 +17,7 @@ import {PhoneIcon, LaptopIcon, TvIcon, ServerIcon} from '../components/icons';
 import {DeviceConnectModal} from '../components/home/DeviceConnectModal';
 import {NetworkInfo} from 'react-native-network-info';
 import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
-
-const mockDevices = [
-  {
-    id: '1',
-    name: 'Phone-A',
-    type: 'phone' as const,
-    ip: '192.168.1.101',
-    distance: 0.3,
-    angle: 45,
-    status: 'online' as const,
-  },
-  {
-    id: '2',
-    name: 'Laptop-B',
-    type: 'laptop' as const,
-    ip: '192.168.1.102',
-    distance: 0.8,
-    angle: 225,
-    status: 'online' as const,
-  },
-  {
-    id: '3',
-    name: 'TV-C',
-    type: 'tv' as const,
-    ip: '192.168.1.103',
-    distance: 0.5,
-    angle: 135,
-    status: 'online' as const,
-  },
-  {
-    id: '4',
-    name: 'Server-D',
-    type: 'server' as const,
-    ip: '192.168.1.104',
-    distance: 0.9,
-    angle: 0,
-    status: 'offline' as const,
-  },
-];
+import Zeroconf from 'react-native-zeroconf';
 
 const DeviceTypeIcon = ({
   type,
@@ -124,6 +86,9 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [wifiName, setWifiName] = useState('获取中...');
   const [ipAddress, setIpAddress] = useState('');
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [zeroconf] = useState(() => new Zeroconf());
 
   const requestPermissionsAndGetNetworkInfo = useCallback(async () => {
     if (Platform.OS === 'android') {
@@ -191,7 +156,21 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
 
   useEffect(() => {
     requestPermissionsAndGetNetworkInfo();
-  }, [requestPermissionsAndGetNetworkInfo]);
+
+    // 初始化 mDNS 发现
+    if (zeroconf) {
+      setupZeroconf();
+    }
+
+    return () => {
+      // 组件卸载时停止发现
+      if (zeroconf) {
+        zeroconf.stop();
+        zeroconf.removeDeviceListeners();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestPermissionsAndGetNetworkInfo, zeroconf]);
 
   const getNetworkInfo = async () => {
     try {
@@ -281,6 +260,89 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
     );
   };
 
+  // 设置 Zeroconf
+  const setupZeroconf = () => {
+    // 监听设备发现事件
+    zeroconf.on('resolved', handleResolvedDevice);
+    zeroconf.on('error', err => {
+      console.log('Zero conf error:', err);
+    });
+
+    // 自动开始扫描
+    startScan();
+  };
+
+  // 处理发现的设备
+  const handleResolvedDevice = (service: any) => {
+    console.log('发现设备:', service);
+
+    // 确定设备类型 (基于服务名称或其他属性)
+    let deviceType: Device['type'] = 'phone';
+
+    if (
+      service.name.toLowerCase().includes('tv') ||
+      service.name.toLowerCase().includes('television')
+    ) {
+      deviceType = 'tv';
+    } else if (
+      service.name.toLowerCase().includes('laptop') ||
+      service.name.toLowerCase().includes('pc') ||
+      service.name.toLowerCase().includes('computer')
+    ) {
+      deviceType = 'laptop';
+    } else if (service.name.toLowerCase().includes('server')) {
+      deviceType = 'server';
+    }
+
+    // 创建设备对象
+    const newDevice: Device = {
+      id: service.id || service.name,
+      name: service.name,
+      type: deviceType,
+      ip: service.addresses?.[0] || 'unknown',
+      // 随机生成设备位置，或基于信号强度等参数计算
+      distance: Math.random() * 0.8 + 0.2, // 0.2 到 1.0 之间
+      angle: Math.floor(Math.random() * 360), // 0 到 359 度
+      status: 'online',
+    };
+
+    // 更新设备列表，避免重复添加
+    setDevices(currentDevices => {
+      const exists = currentDevices.some(device => device.id === newDevice.id);
+      if (exists) {
+        return currentDevices.map(device =>
+          device.id === newDevice.id ? newDevice : device,
+        );
+      } else {
+        return [...currentDevices, newDevice];
+      }
+    });
+  };
+
+  // 开始扫描网络设备
+  const startScan = () => {
+    if (!zeroconf) {
+      console.error('Zeroconf 未初始化');
+      return;
+    }
+
+    setIsScanning(true);
+
+    // 清除之前的设备
+    setDevices([]);
+
+    // 启动扫描，寻找多种服务类型
+    zeroconf.scan(
+      'http,https,_http._tcp.,_https._tcp.,_device-info._tcp.,_googlecast._tcp.,_ipp._tcp.,_smb._tcp.,_airplay._tcp.',
+    );
+
+    // 30秒后停止扫描以节省电量
+    setTimeout(() => {
+      setIsScanning(false);
+      zeroconf.stop();
+    }, 30000);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -288,8 +350,11 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
           <Text style={styles.title}>附近设备</Text>
           <TouchableOpacity
             style={styles.refreshButton}
-            onPress={() => console.log('Refresh')}>
-            <RefreshIcon size={24} color={colors.text} />
+            onPress={() => startScan()}>
+            <RefreshIcon
+              size={24}
+              color={isScanning ? colors.primary : colors.text}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.viewToggle}>
@@ -326,22 +391,34 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
 
       {viewMode === 'radar' ? (
         <View style={styles.radarView}>
-          <RadarView devices={mockDevices} onDevicePress={handleDevicePress} />
+          <RadarView devices={devices} onDevicePress={handleDevicePress} />
           <Text style={styles.radarWifiInfo}>
             已连接到Wi-Fi: {wifiName}
             {ipAddress ? `\nIP地址: ${ipAddress}` : ''}
+            {devices.length === 0 &&
+              !isScanning &&
+              '\n未发现设备，点击刷新按钮重试'}
+            {isScanning && '\n正在扫描设备...'}
           </Text>
         </View>
       ) : (
         <View style={styles.listView}>
           <View style={styles.listContainer}>
-            {mockDevices.map(device => (
-              <DeviceListItem
-                key={device.id}
-                device={device}
-                onPress={handleDevicePress}
-              />
-            ))}
+            {devices.length > 0 ? (
+              devices.map(device => (
+                <DeviceListItem
+                  key={device.id}
+                  device={device}
+                  onPress={handleDevicePress}
+                />
+              ))
+            ) : (
+              <Text style={styles.noDevicesText}>
+                {isScanning
+                  ? '正在扫描设备...'
+                  : '未发现设备，点击刷新按钮重试'}
+              </Text>
+            )}
           </View>
           <Text style={styles.listWifiInfo}>
             已连接到Wi-Fi: {wifiName}
@@ -460,13 +537,17 @@ const styles = StyleSheet.create({
   radarView: {
     flex: 1,
     display: 'flex',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 40,
+    paddingBottom: 80,
   },
   radarWifiInfo: {
     textAlign: 'center',
     color: colors.text,
     padding: 16,
-    marginBottom: 200,
+    marginTop: 40,
+    width: '100%',
   },
   listWifiInfo: {
     textAlign: 'center',
@@ -479,5 +560,10 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     padding: 8,
+  },
+  noDevicesText: {
+    padding: 16,
+    textAlign: 'center',
+    color: colors.disabled,
   },
 });

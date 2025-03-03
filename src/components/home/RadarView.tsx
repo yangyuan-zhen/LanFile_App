@@ -105,11 +105,11 @@ export const RadarView = ({devices, onDevicePress}: RadarViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 0.9,
+    width: 300,
+    height: 300,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-    marginRight: 26,
+    position: 'relative',
   },
   deviceDot: {
     position: 'absolute',
@@ -118,5 +118,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  radar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    borderWidth: 1,
+    borderColor: colors.disabled,
+    borderRadius: 9999,
+    opacity: 0.5,
   },
 });
