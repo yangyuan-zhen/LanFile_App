@@ -96,9 +96,13 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
-      <View style={styles.content}>
+    <View style={styles.container}>
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="dark-content"
+        translucent={true}
+      />
+      <SafeAreaView style={styles.content}>
         {activeTab === 'home' ? (
           <HomeScreen onSendFile={handleSendFile} />
         ) : activeTab === 'send' ? (
@@ -109,7 +113,7 @@ function App(): React.JSX.Element {
         ) : (
           renderScene[activeTab]()
         )}
-      </View>
+      </SafeAreaView>
       <View style={styles.tabBar}>
         {routes.map(route => (
           <TouchableOpacity
@@ -133,7 +137,7 @@ function App(): React.JSX.Element {
           </TouchableOpacity>
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

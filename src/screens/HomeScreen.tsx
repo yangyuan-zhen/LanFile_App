@@ -1,10 +1,13 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Pressable,
+  Platform,
+  Alert,
+  Linking,
 } from 'react-native';
 import {RadarView} from '../components/home/RadarView';
 import {colors} from '../styles/theme';
@@ -12,6 +15,8 @@ import {Device} from '../types/device';
 import {RefreshIcon} from '../components/icons';
 import {PhoneIcon, LaptopIcon, TvIcon, ServerIcon} from '../components/icons';
 import {DeviceConnectModal} from '../components/home/DeviceConnectModal';
+import {NetworkInfo} from 'react-native-network-info';
+import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
 
 const mockDevices = [
   {
@@ -117,12 +122,95 @@ interface HomeScreenProps {
 export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
   const [viewMode, setViewMode] = useState<'radar' | 'list'>('radar');
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [wifiName, setWifiName] = useState('');
+  const [wifiName, setWifiName] = useState('获取中...');
+  const [ipAddress, setIpAddress] = useState('');
+
+  const requestPermissionsAndGetNetworkInfo = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      try {
+        // 检查权限
+        const result = await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+
+        if (result === RESULTS.GRANTED) {
+          // 检查位置服务是否开启
+          const locationEnabled = await checkLocationServices();
+          if (!locationEnabled) {
+            promptEnableLocationServices();
+            return;
+          }
+          getNetworkInfo();
+        } else if (result === RESULTS.DENIED) {
+          // 请求权限
+          const requestResult = await request(
+            PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+          );
+          if (requestResult === RESULTS.GRANTED) {
+            const locationEnabled = await checkLocationServices();
+            if (!locationEnabled) {
+              promptEnableLocationServices();
+              return;
+            }
+            getNetworkInfo();
+          } else {
+            showPermissionDeniedAlert();
+          }
+        } else {
+          showPermissionDeniedAlert();
+        }
+      } catch (err) {
+        console.warn(err);
+        setWifiName('权限请求失败');
+      }
+    } else if (Platform.OS === 'ios') {
+      // iOS 也需要位置权限
+      try {
+        const permissionStatus = await check(
+          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        );
+
+        if (permissionStatus === RESULTS.GRANTED) {
+          getNetworkInfo();
+        } else if (permissionStatus === RESULTS.DENIED) {
+          const requestResult = await request(
+            PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+          );
+          if (requestResult === RESULTS.GRANTED) {
+            getNetworkInfo();
+          } else {
+            showPermissionDeniedAlert();
+          }
+        } else {
+          showPermissionDeniedAlert();
+        }
+      } catch (err) {
+        console.warn(err);
+        setWifiName('权限请求失败');
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    // 使用硬编码的 WiFi 名称
-    setWifiName('HomeWiFi');
-  }, []);
+    requestPermissionsAndGetNetworkInfo();
+  }, [requestPermissionsAndGetNetworkInfo]);
+
+  const getNetworkInfo = async () => {
+    try {
+      // 获取WiFi名称
+      const ssid = await NetworkInfo.getSSID();
+      setWifiName(ssid || '未知网络');
+
+      // 获取IP地址
+      const ip = await NetworkInfo.getIPV4Address();
+      setIpAddress(ip || '未知IP');
+
+      console.log('WiFi名称:', ssid);
+      console.log('IP地址:', ip);
+    } catch (error) {
+      console.error('获取网络信息失败:', error);
+      setWifiName('获取失败');
+      setIpAddress('');
+    }
+  };
 
   const handleDevicePress = (device: Device) => {
     setSelectedDevice(device);
@@ -131,6 +219,66 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
   const handleSendFile = (deviceName: string) => {
     onSendFile(deviceName);
     setSelectedDevice(null);
+  };
+
+  // 检查位置服务是否开启（Android特定）
+  const checkLocationServices = async () => {
+    if (Platform.OS !== 'android') {
+      return true;
+    }
+
+    try {
+      // 尝试获取WiFi SSID，如果失败可能是因为位置服务未开启
+      const ssid = await NetworkInfo.getSSID();
+      return ssid !== null && ssid !== '<unknown ssid>';
+    } catch (error) {
+      console.log('位置服务检查失败', error);
+      return false;
+    }
+  };
+
+  // 提示用户开启位置服务
+  const promptEnableLocationServices = () => {
+    Alert.alert(
+      '需要开启位置服务',
+      '在Android 9及以上版本，获取WiFi信息需要开启位置服务。请前往设置开启位置服务。',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+          onPress: () => setWifiName('需要开启位置服务'),
+        },
+        {
+          text: '去设置',
+          onPress: () => {
+            Linking.openSettings();
+            setWifiName('请开启位置服务后返回');
+          },
+        },
+      ],
+    );
+  };
+
+  // 显示权限被拒绝的提示
+  const showPermissionDeniedAlert = () => {
+    setWifiName('需要位置权限');
+    Alert.alert(
+      '权限被拒绝',
+      '无法获取WiFi信息，因为位置权限被拒绝。我们需要此权限来识别您当前连接的WiFi网络。',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '去设置',
+          onPress: () => {
+            Linking.openSettings();
+            setWifiName('请在设置中开启位置权限');
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -179,7 +327,10 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
       {viewMode === 'radar' ? (
         <View style={styles.radarView}>
           <RadarView devices={mockDevices} onDevicePress={handleDevicePress} />
-          <Text style={styles.radarWifiInfo}>已连接到Wi-Fi: {wifiName}</Text>
+          <Text style={styles.radarWifiInfo}>
+            已连接到Wi-Fi: {wifiName}
+            {ipAddress ? `\nIP地址: ${ipAddress}` : ''}
+          </Text>
         </View>
       ) : (
         <View style={styles.listView}>
@@ -192,7 +343,10 @@ export const HomeScreen = ({onSendFile}: HomeScreenProps) => {
               />
             ))}
           </View>
-          <Text style={styles.listWifiInfo}>已连接到Wi-Fi: {wifiName}</Text>
+          <Text style={styles.listWifiInfo}>
+            已连接到Wi-Fi: {wifiName}
+            {ipAddress ? `\nIP地址: ${ipAddress}` : ''}
+          </Text>
         </View>
       )}
 
