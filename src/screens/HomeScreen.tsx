@@ -1,6 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -8,6 +7,7 @@ import {
   Platform,
   Alert,
   Linking,
+  View,
 } from 'react-native';
 import {RadarView} from '../components/home/RadarView';
 import {colors} from '../styles/theme';
