@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import {colors} from '../styles/theme';
-import {ArrowLeftIcon, ChevronRightIcon} from '../components/icons';
+import {ArrowLeftIcon, ChevronRightIcon, CloseIcon} from '../components/icons';
 import {PathPickerScreen} from './PathPickerScreen';
 import DeviceInfo from 'react-native-device-info';
 
@@ -155,7 +155,7 @@ export const SettingsScreen = ({
             <View style={styles.aboutModalHeader}>
               <Text style={styles.aboutModalTitle}>关于 LanFile</Text>
               <TouchableOpacity onPress={() => setShowAbout(false)}>
-                <Text style={styles.closeButton}>✕</Text>
+                <CloseIcon size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
             <Text style={styles.aboutVersion}>版本: 0.0.1</Text>
@@ -294,11 +294,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.text,
-  },
-  closeButton: {
-    fontSize: 20,
-    color: colors.text,
-    padding: 5,
   },
   aboutVersion: {
     fontSize: 16,
