@@ -8,7 +8,6 @@
 
 import React, {useState} from 'react';
 import {
-  SafeAreaView,
   StatusBar,
   View,
   TouchableOpacity,
@@ -16,6 +15,7 @@ import {
   StyleSheet,
   LogBox,
 } from 'react-native';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from './src/styles/theme';
 import {
   RadarIcon,
@@ -96,48 +96,54 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        backgroundColor="transparent"
-        barStyle="dark-content"
-        translucent={true}
-      />
-      <SafeAreaView style={styles.content}>
-        {activeTab === 'home' ? (
-          <HomeScreen onSendFile={handleSendFile} />
-        ) : activeTab === 'send' ? (
-          <SendScreen
-            deviceName={selectedDevice}
-            onBack={() => setActiveTab('home')}
-          />
-        ) : (
-          renderScene[activeTab]()
-        )}
-      </SafeAreaView>
-      <View style={styles.tabBar}>
-        {routes.map(route => (
-          <TouchableOpacity
-            key={route.key}
-            style={styles.tab}
-            onPress={() => setActiveTab(route.key)}>
-            <route.icon
-              color={activeTab === route.key ? colors.primary : colors.disabled}
-              size={24}
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar
+          backgroundColor="transparent"
+          barStyle="dark-content"
+          translucent={true}
+        />
+        <View style={styles.content}>
+          {activeTab === 'home' ? (
+            <HomeScreen onSendFile={handleSendFile} />
+          ) : activeTab === 'send' ? (
+            <SendScreen
+              deviceName={selectedDevice}
+              onBack={() => setActiveTab('home')}
             />
-            <Text
-              style={[
-                styles.tabText,
-                {
-                  color:
-                    activeTab === route.key ? colors.primary : colors.disabled,
-                },
-              ]}>
-              {route.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+          ) : (
+            renderScene[activeTab]()
+          )}
+        </View>
+        <View style={styles.tabBar}>
+          {routes.map(route => (
+            <TouchableOpacity
+              key={route.key}
+              style={styles.tab}
+              onPress={() => setActiveTab(route.key)}>
+              <route.icon
+                color={
+                  activeTab === route.key ? colors.primary : colors.disabled
+                }
+                size={24}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  {
+                    color:
+                      activeTab === route.key
+                        ? colors.primary
+                        : colors.disabled,
+                  },
+                ]}>
+                {route.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
