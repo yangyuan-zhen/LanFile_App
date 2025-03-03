@@ -11,8 +11,25 @@ import {
 import Slider from '@react-native-community/slider';
 import {colors} from '../styles/theme';
 import {ArrowLeftIcon, ChevronRightIcon, CloseIcon} from '../components/icons';
-import {PathPickerScreen} from './PathPickerScreen';
 import DeviceInfo from 'react-native-device-info';
+import RNFS from 'react-native-fs';
+import DocumentPicker from 'react-native-document-picker';
+
+const getDefaultPath = () => {
+  try {
+    return (
+      Platform.select({
+        android: RNFS.ExternalDirectoryPath, // 移除 /Downloads
+        ios: RNFS.DocumentDirectoryPath,
+      }) || RNFS.DocumentDirectoryPath
+    );
+  } catch (error) {
+    console.error('Error getting default path:', error);
+    return '/storage/emulated/0/Download'; // 默认 Android 下载路径
+  }
+};
+
+const DEFAULT_SAVE_PATH = getDefaultPath();
 
 interface SettingsScreenProps {
   deviceName: string;
@@ -27,11 +44,11 @@ export const SettingsScreen = ({
   savePath,
   onSavePathChange,
 }: SettingsScreenProps) => {
-  const [showPathPicker, setShowPathPicker] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [chunkSize, setChunkSize] = useState(16);
   const [maxConcurrent, setMaxConcurrent] = useState(5);
   const [defaultDeviceName, setDefaultDeviceName] = useState('Unknown Device');
+
   useEffect(() => {
     const fetchDeviceName = async () => {
       if (Platform.OS === 'android') {
@@ -45,6 +62,21 @@ export const SettingsScreen = ({
     };
     fetchDeviceName();
   }, []);
+
+  const handleSelectPath = async () => {
+    try {
+      // 打开文件夹选择器
+      const result = await DocumentPicker.pickDirectory();
+      if (result) {
+        // 更新保存路径
+        onSavePathChange(result.uri);
+      }
+    } catch (error) {
+      if (!DocumentPicker.isCancel(error)) {
+        console.error('Error accessing file system:', error);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -72,12 +104,10 @@ export const SettingsScreen = ({
           />
         </View>
 
-        <TouchableOpacity
-          style={styles.settingItem}
-          onPress={() => setShowPathPicker(true)}>
+        <TouchableOpacity style={styles.settingItem} onPress={handleSelectPath}>
           <Text style={styles.settingLabel}>默认保存路径</Text>
           <View style={styles.settingValue}>
-            <Text style={styles.pathText}>{savePath}</Text>
+            <Text style={styles.pathText}>{savePath || DEFAULT_SAVE_PATH}</Text>
             <ChevronRightIcon size={20} color={colors.text} />
           </View>
         </TouchableOpacity>
@@ -133,17 +163,6 @@ export const SettingsScreen = ({
       <TouchableOpacity style={styles.exitButton}>
         <Text style={styles.exitButtonText}>退出应用</Text>
       </TouchableOpacity>
-
-      {showPathPicker && (
-        <PathPickerScreen
-          currentPath={savePath}
-          onPathSelect={path => {
-            onSavePathChange(path);
-            setShowPathPicker(false);
-          }}
-          onClose={() => setShowPathPicker(false)}
-        />
-      )}
 
       <Modal
         visible={showAbout}
